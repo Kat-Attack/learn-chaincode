@@ -110,10 +110,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.Init(stub, "init", args)
 	} else if function == "write" {
 		return t.write(stub, args)
+	} else if function == "add_task" {
+		return t.add_task(stub, args)
 	}
-	// else if function == "createAccount" {
-	// 	return t.CreateAccount(stub, args)
-	// } else if function == "createProduct" {
+	//else if function == "createProduct" {
 	// 	return t.CreateProduct(stub, args)
 	// } else if function == "purchaseProduct" { 						// for rewards (includes turing 100 savings into 100 spendings)
 	// 	return t.PurchaseProduct(stub, args)
