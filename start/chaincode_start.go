@@ -29,6 +29,8 @@ import (
 type SimpleChaincode struct {
 }
 
+var MarketplaceStr = "_marketplace" //name for the key/value that will store all open trades
+
 type Task struct {
 	Uid         string `json:"id"`
 	User        string `json:"email"`
@@ -40,11 +42,11 @@ type Task struct {
 }
 
 type Marketplace struct {
-	Tasks []string `json:"tasks"`
+	Tasks []Task `json:"tasks"`
 }
 
 type CompletedTasks struct { // all tasks here shoud have Completed by not null
-	Tasks []string `json:"tasks"`
+	Tasks []Task `json:"tasks"`
 }
 
 // ============================================================================================================================
@@ -188,25 +190,6 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 	return valAsbytes, nil
 }
 
-//from marbles and our cc:
-// func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-// 	var name, jsonResp string
-// 	var err error
-
-// 	if len(args) != 1 {
-// 		return nil, errors.New("Incorrect number of arguments. Expecting name of the var to query")
-// 	}
-
-// 	name = args[0]
-// 	valAsbytes, err := stub.GetState(name)									//get the var from chaincode state
-// 	if err != nil {
-// 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
-// 		return nil, errors.New(jsonResp)
-// 	}
-
-// 	return valAsbytes, nil													//send it onward
-// }
-
 func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 
@@ -218,33 +201,41 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 
 	fmt.Println("- create and add task")
 
-	uid := args[0]
-	user := args[1]
-	amount := args[2]
-	title := args[3]
-	description := args[4]
-	submissions := args[5]
-	completed_by := args[6]
-
-	//check if task already exists
-	taskAsBytes, err := stub.GetState(uid)
+	amount, err := strconv.Atoi(args[2])
 	if err != nil {
-		return nil, errors.New("Failed to get task id")
-	}
-	res := Task{}
-	json.Unmarshal(taskAsBytes, &res)
-	if res.Uid == uid {
-		fmt.Println("This task arleady exists: id = " + uid)
-		fmt.Println(res)
-		return nil, errors.New("This task arleady exists") //all stop a task by this name exists
+		return nil, errors.New("3rd argument (amount) must be a numeric string")
 	}
 
-	//build the marble json string manually
-	str := `{"uid": "` + uid + `", "user": "` + user + `", "amount": ` + strconv.Itoa(amount) + `, "title": "` + title + `",
-			"description": "` + description + `", "submissions": "` + submissions + `", "completed_by": "` + completed - by + `"}`
-	err = stub.PutState(uid, []byte(str)) //store task with id as key
+	var task = Task{}
+	task.Uid = args[0]
+	task.User = args[1]
+	task.Amount = amount
+	task.Title = args[3]
+	task.Description = args[4]
+	task.Submissions = args[5]
+	task.CompletedBy = args[6]
+
+	fmt.Println(task)
+
+	jsonAsBytes, _ := json.Marshal(task)        //?
+	err = stub.PutState("_debug1", jsonAsBytes) //?
+
+	//get the open trade struct
+	MarketplaceAsBytes, err := stub.GetState(MarketplaceStr)
+	if err != nil {
+		return nil, errors.New("Failed to get marketplace")
+	}
+	var mplace Marketplace
+	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
+
+	mplace.Tasks = append(mplace.Tasks, task) //append to marketplace
+	fmt.Println("! appended task to marketplace")
+	jsonAsBytes, _ = json.Marshal(mplace)
+	err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite marketplace
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("- end open trade")
+	return nil, nil
 
 }
