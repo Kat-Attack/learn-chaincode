@@ -203,10 +203,14 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println(args[0])
 	fmt.Println(args[1])
 	fmt.Println(args[2])
+	fmt.Println(args[3])
+	fmt.Println(args[4])
+	fmt.Println(args[5])
+	fmt.Println(args[6])
 	//   0       1       2         3           4              5              6
 	// "uid", "user", "amount", "title", "description", "submissions", "completed_by" (completed_by + submissions expected to be null)
-	if len(args) != 6 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 7")
+	if len(args) < 5 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 5 to 7 (last two should be empty)")
 	}
 
 	fmt.Println("- create and add task")
@@ -225,6 +229,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	task.Submissions = args[5]
 	task.CompletedBy = args[6]
 
+	fmt.Println("below is task: ")
 	fmt.Println(task)
 
 	jsonAsBytes, _ := json.Marshal(task)        //?
