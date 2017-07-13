@@ -278,16 +278,18 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 	fmt.Println("- update task")
 
 	// get all active tasks in marketplace
-	marketplaceAsBytes, err := stub.GetState(MarketplaceStr)
+	MarketplaceAsBytes, err := stub.GetState(MarketplaceStr)
 	if err != nil {
 		return nil, errors.New("Failed to get marketplace array")
 	}
-	var mplace []string
-	json.Unmarshal(marketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
+	var mplace Marketplace
+	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
 	fmt.Println(mplace)
-	for i := range mplace { //iter through all the tasks
-		fmt.Println("looking @ task name: " + mplace[i])
+
+	for i := range mplace.Tasks { //iter through all the tasks
+		fmt.Print("looking @ task name: ")
+		fmt.Println(mplace.Tasks[i])
 
 		// marbleAsBytes, err := stub.GetState(mplace[i]) //grab this task
 		// if err != nil {
