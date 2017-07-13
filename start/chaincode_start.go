@@ -29,7 +29,8 @@ import (
 type SimpleChaincode struct {
 }
 
-var MarketplaceStr = "_marketplace" //name for the key/value that will store all open trades
+var MarketplaceStr = "_marketplace"        //name for the key/value that will store all open tasks
+var CompletedTasksStr = "_completedTasks " //name for the key/value that will store all completed tasks
 
 type Task struct {
 	Uid         string `json:"id"`
@@ -42,7 +43,7 @@ type Task struct {
 }
 
 type Marketplace struct {
-	Tasks []Task `json:"tasks"`
+	Tasks []Task `json:"marketplace_tasks"`
 }
 
 type CompletedTasks struct { // all tasks here shoud have Completed by not null
@@ -66,9 +67,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	var Aval int
 	var err error
 
-	// if len(args) != 1 {
-	// 	return nil, errors.New("Incorrect number of arguments. Expecting 1")
-	// }
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	}
 
 	// Initialize the chaincode
 	Aval, err = strconv.Atoi(args[0])
@@ -82,19 +83,19 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 		return nil, err
 	}
 
-	// var empty []string
-	// jsonAsBytes, _ := json.Marshal(empty)								//marshal an emtpy array of strings to clear the index
-	// err = stub.PutState(marbleIndexStr, jsonAsBytes)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	var cTasks CompletedTasks
+	jsonAsBytes, _ := json.Marshal(cTasks) //clearr the CompletedTasks struct
+	err = stub.PutState(CompletedTasksStr, jsonAsBytes)
+	if err != nil {
+		return nil, err
+	}
 
-	// var trades AllTrades
-	// jsonAsBytes, _ = json.Marshal(trades)								//clear the open trade struct
-	// err = stub.PutState(openTradesStr, jsonAsBytes)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	var mplace Marketplace
+	jsonAsBytes, _ = json.Marshal(mplace) //clear the Marketplace struct
+	err = stub.PutState(MarketplaceStr, jsonAsBytes)
+	if err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }
@@ -148,6 +149,28 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 }
 
 // ============================================================================================================================
+// Read - read a variable from chaincode state (used by Query)
+// ============================================================================================================================
+
+func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var key, jsonResp string
+	var err error
+
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
+	}
+
+	key = args[0]
+	valAsbytes, err := stub.GetState(key)
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	return valAsbytes, nil
+}
+
+// ============================================================================================================================
 // Write - Invoke function to write
 // ============================================================================================================================
 func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
@@ -169,34 +192,21 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 }
 
 // ============================================================================================================================
-// Read - read a variable from chaincode state
+// add_task - creates a task and adds it to Marketplace struct
 // ============================================================================================================================
-
-func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var key, jsonResp string
-	var err error
-
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
-	}
-
-	key = args[0]
-	valAsbytes, err := stub.GetState(key)
-	if err != nil {
-		jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
-		return nil, errors.New(jsonResp)
-	}
-
-	return valAsbytes, nil
-}
 
 func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 
+	fmt.Println("Number of args: ")
+	fmt.Println(len(args))
+	fmt.Println(args[0])
+	fmt.Println(args[1])
+	fmt.Println(args[2])
 	//   0       1       2         3           4              5              6
 	// "uid", "user", "amount", "title", "description", "submissions", "completed_by" (completed_by + submissions expected to be null)
 	if len(args) != 6 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 6")
+		return nil, errors.New("Incorrect number of arguments. Expecting 7")
 	}
 
 	fmt.Println("- create and add task")
