@@ -285,6 +285,7 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 	var mplace []string
 	json.Unmarshal(marketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
+	fmt.Println(mplace)
 	for i := range mplace { //iter through all the tasks
 		fmt.Println("looking @ task name: " + mplace[i])
 
