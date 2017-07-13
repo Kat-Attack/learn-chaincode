@@ -34,13 +34,13 @@ var MarketplaceStr = "_marketplace"        // name for the key/value that will s
 var CompletedTasksStr = "_completedTasks " // name for the key/value that will store all completed tasks
 
 type Task struct {
-	Uid         string `json:"id"`
-	User        string `json:"email"` // users are defined by their emails
-	Amount      int    `json:"amount"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Submissions string `json:"submissions"`
-	CompletedBy string `json:"completed_by"` // either null or a user's email
+	Uid         string   `json:"id"`
+	User        string   `json:"email"` // users are defined by their emails
+	Amount      int      `json:"amount"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Submissions []string `json:"submissions"`
+	CompletedBy string   `json:"completed_by"` // either null or a user's email
 }
 
 type Marketplace struct {
@@ -227,7 +227,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	task.Amount = amount
 	task.Title = args[3]
 	task.Description = args[4]
-	task.Submissions = args[5]
+	task.Submissions = []string{args[5]}
 	task.CompletedBy = args[6]
 
 	fmt.Println("below is task: ")
@@ -286,7 +286,7 @@ func (t *SimpleChaincode) update_submission(stub shim.ChaincodeStubInterface, ar
 
 	res := Task{}
 	json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
-	res.Submissions = args[1]
+	res.Submissions = append(res.Submissions, args[1])
 
 	fmt.Println("! appended submission to task")
 	fmt.Println(res.Submissions)
@@ -334,44 +334,40 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 	fmt.Print("Marketplace array: ")
 	fmt.Println(mplace)
 
-	////////// add submission to task ///////////////
+	t.update_submission(stub, []string{args[0], args[1]}) // add submission to task
 
-	t.update_submission(stub, []string{args[0], args[1]})
-	// tasksAsBytes, err := stub.GetState(args[0])
+	//////// update submission in marketplace as well //////
+	for i := range mplace.Tasks { //iter through all the tasks
+		fmt.Print("looking @ task name: ")
+		fmt.Println(mplace.Tasks[i])
+
+		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
+			fmt.Println("Found trade to update")
+
+			// taskAsBytes, err := stub.GetState(args[0])
+			// if err != nil {
+			// 	return nil, errors.New("Failed to get task for mplace")
+			// }
+
+			// task := Task{}
+			// json.Unmarshal(taskAsBytes, &task) //un stringify it aka JSON.parse()
+
+			t.update_submission(stub, []string{args[0], args[1]})
+			fmt.Println(mplace.Tasks[i].Submissions)
+			//  = append(mplace.Tasks[i].Submissions, args[1])
+		}
+	}
+
+	// taskAsBytes, err := json.Marshal(mplace.Tasks[i])
 	// if err != nil {
-	// 	return nil, errors.New("Failed to get task")
+	// 	fmt.Println("error:", err)
 	// }
 
-	// res := Task{}
-	// json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
-	// res.Submissions = args[1]
+	// var taskStr []string
+	// json.Unmarshal(taskAsBytes, &taskStr) //un stringify it aka JSON.parse()
 
-	// fmt.Println("! appended submission to task")
-	// fmt.Println(res.Submissions)
-	// fmt.Println(res)
-
-	// jsonAsBytes, _ := json.Marshal(res)
-	// err = stub.PutState(args[0], jsonAsBytes) //rewrite the task with id as key
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	/////////// end tasks //////////
-
-	// for i := range mplace.Tasks { //iter through all the tasks
-	// 	fmt.Print("looking @ task name: ")
-	// 	fmt.Println(mplace.Tasks[i])
-
-	// 	taskAsBytes, err := json.Marshal(mplace.Tasks[i])
-	// 	if err != nil {
-	// 		fmt.Println("error:", err)
-	// 	}
-
-	// 	var taskStr []string
-	// 	json.Unmarshal(taskAsBytes, &taskStr) //un stringify it aka JSON.parse()
-
-	// 	fmt.Println(taskStr)
-	// 	fmt.Println(taskStr[1])
+	// fmt.Println(taskStr)
+	// fmt.Println(taskStr[1])
 
 	// taskAsBytes, err := stub.GetState(taskStr[1]) //grab this marble
 	// if err != nil {
@@ -387,22 +383,22 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 
 	// }
 
-	// marbleAsBytes, err := stub.GetState(mplace[i]) //grab this task
-	// if err != nil {
-	// 	return fail, errors.New("Failed to get task")
-	// }
-	// res := Task{}
-	// json.Unmarshal(marbleAsBytes, &res) //un stringify it aka JSON.parse()
-	// fmt.Println("looking @ : " + res.Uid + "," + res.User + ", " + strconv.Itoa(res.Amount)) + "," + res.Title + ", " + res.Description + "," + res.Submissions);
+	// // marbleAsBytes, err := stub.GetState(mplace[i]) //grab this task
+	// // if err != nil {
+	// // 	return fail, errors.New("Failed to get task")
+	// // }
+	// // res := Task{}
+	// // json.Unmarshal(marbleAsBytes, &res) //un stringify it aka JSON.parse()
+	// // fmt.Println("looking @ : " + res.Uid + "," + res.User + ", " + strconv.Itoa(res.Amount)) + "," + res.Title + ", " + res.Description + "," + res.Submissions);
 
-	// //check for user && color && size
-	// if (res.Uid) == args[0] {
-	// 	fmt.Println("found the task: " + res.Uid)
-	// 	res.
-	// 	fmt.Println("! end find marble 4 trade")
-	// 	return res, nil
-	// }
-	// }
+	// // //check for user && color && size
+	// // if (res.Uid) == args[0] {
+	// // 	fmt.Println("found the task: " + res.Uid)
+	// // 	res.
+	// // 	fmt.Println("! end find marble 4 trade")
+	// // 	return res, nil
+	// // }
+	// // }
 
 	fmt.Println("- end update task")
 	return nil, nil
