@@ -29,6 +29,7 @@ import (
 type SimpleChaincode struct {
 }
 
+var taskIndexStr = "_taskindex"            //name for the key/value that will store a list of all known tasks
 var MarketplaceStr = "_marketplace"        // name for the key/value that will store all open tasks
 var CompletedTasksStr = "_completedTasks " // name for the key/value that will store all completed tasks
 
@@ -232,10 +233,16 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println("below is task: ")
 	fmt.Println(task)
 
-	/////////////// for debugging: query for _debug1 to see your parameters ///////
-	jsonAsBytes, _ := json.Marshal(task)
-	err = stub.PutState("_debug1", jsonAsBytes)
-	//////////////// end for debugging ////////////////////////////////////////////
+	taskAsBytes, _ := json.Marshal(task)
+	err = stub.PutState(args[0], taskAsBytes) //store marble with Uid as key
+	if err != nil {
+		return nil, err
+	}
+
+	// /////////////// for debugging: query for _debug1 to see your parameters ///////
+	// jsonAsBytes, _ := json.Marshal(task)
+	// err = stub.PutState("_debug1", jsonAsBytes)
+	// //////////////// end for debugging ////////////////////////////////////////////
 
 	//get the open trade struct
 	MarketplaceAsBytes, err := stub.GetState(MarketplaceStr)
@@ -247,7 +254,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 
 	mplace.Tasks = append(mplace.Tasks, task) //append to marketplace
 	fmt.Println("! appended task to marketplace")
-	jsonAsBytes, _ = json.Marshal(mplace)
+	jsonAsBytes, _ := json.Marshal(mplace)
 	err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite marketplace
 	if err != nil {
 		return nil, err
@@ -285,11 +292,50 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 	var mplace Marketplace
 	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
+	fmt.Print("Marketplace array: ")
 	fmt.Println(mplace)
+
+	////////// tasks ///////////////
+
+	tasksAsBytes, err := stub.GetState(taskIndexStr)
+	if err != nil {
+		return nil, errors.New("Failed to get tasks index")
+	}
+	var taskIndex []string
+	json.Unmarshal(tasksAsBytes, &taskIndex) //un stringify it aka JSON.parse()
+
+	fmt.Print("Task index: ")
+	fmt.Println(taskIndex)
+	/////////// end tasks //////////
 
 	for i := range mplace.Tasks { //iter through all the tasks
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
+
+		taskAsBytes, err := json.Marshal(mplace.Tasks[i])
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+
+		var taskStr []string
+		json.Unmarshal(taskAsBytes, &taskStr) //un stringify it aka JSON.parse()
+
+		fmt.Println(taskStr)
+		fmt.Println(taskStr[1])
+
+		// taskAsBytes, err := stub.GetState(taskStr[1]) //grab this marble
+		// if err != nil {
+		// 	return nil, errors.New("Failed to get task")
+		// }
+		// res := Task{}
+		// json.Unmarshal(taskAsBytes, &res) //un stringify it aka JSON.parse()
+
+		// fmt.Print("This is the marble: ")
+		// fmt.Println(res.Uid + ", " + res.User + ", " + res.Amount)
+
+		// if mplace.Tasks[i][0] == args[0] { // found task
+
+		// }
 
 		// marbleAsBytes, err := stub.GetState(mplace[i]) //grab this task
 		// if err != nil {
