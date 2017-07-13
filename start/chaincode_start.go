@@ -299,7 +299,7 @@ func (t *SimpleChaincode) update_submission(stub shim.ChaincodeStubInterface, ar
 		return nil, err
 	}
 
-	fmt.Println("- end set user")
+	fmt.Println("- end update submission")
 	return nil, nil
 }
 
@@ -334,7 +334,7 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 	fmt.Print("Marketplace array: ")
 	fmt.Println(mplace)
 
-	t.update_submission(stub, []string{args[0], args[1]}) // add submission to task
+	// t.update_submission(stub, []string{args[0], args[1]}) // add submission to task
 
 	//////// update submission in marketplace as well //////
 	for i := range mplace.Tasks { //iter through all the tasks
@@ -354,7 +354,17 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 
 			t.update_submission(stub, []string{args[0], args[1]})
 			fmt.Println(mplace.Tasks[i].Submissions)
-			//  = append(mplace.Tasks[i].Submissions, args[1])
+			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
+
+			fmt.Println("! appended submission to task in marketplace")
+			fmt.Println(mplace.Tasks[i].Submissions)
+			fmt.Println(mplace.Tasks[i])
+
+			jsonAsBytes, _ := json.Marshal(mplace)
+			err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the task with id as key
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
