@@ -116,10 +116,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.add_task(stub, args)
 	} else if function == "update_task" {
 		return t.update_task(stub, args)
+	} else if function == "update_submission" {
+		return t.update_submission(stub, args)
 	}
-	// else if function == "purchaseProduct" { 						// for rewards (includes turing 100 savings into 100 spendings)
-	// 	return t.PurchaseProduct(stub, args)
-	// } else if function == "addAllowance" {							// transactions from admin panel
+	//else if function == "addAllowance" {							// transactions from admin panel
 	// 	return t.AddAllowance(stub, args)
 	// } else if function == "exchange" {
 	// 	return t.Exchange(stub, args)
@@ -265,6 +265,45 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 }
 
 // ============================================================================================================================
+// update_submission - update submission on task
+// ============================================================================================================================
+func (t *SimpleChaincode) update_submission(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var err error
+
+	//   0       1
+	// "uid",  "bob@email.com"
+	if len(args) < 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2")
+	}
+
+	fmt.Println("- start update submission")
+	fmt.Println(args[0] + " - " + args[1])
+
+	tasksAsBytes, err := stub.GetState(args[0])
+	if err != nil {
+		return nil, errors.New("Failed to get task")
+	}
+
+	res := Task{}
+	json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
+	res.Submissions = args[1]
+
+	fmt.Println("! appended submission to task")
+	fmt.Println(res.Submissions)
+	fmt.Println(res)
+
+	// UPDATE TASK KEY
+	jsonAsBytes, _ := json.Marshal(res)
+	err = stub.PutState(args[0], jsonAsBytes) //rewrite the task with id as key
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("- end set user")
+	return nil, nil
+}
+
+// ============================================================================================================================
 // update_task - upload submission into task
 // ============================================================================================================================
 
@@ -295,26 +334,27 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 	fmt.Print("Marketplace array: ")
 	fmt.Println(mplace)
 
-	////////// tasks ///////////////
+	////////// add submission to task ///////////////
 
-	tasksAsBytes, err := stub.GetState(args[0])
-	if err != nil {
-		return nil, errors.New("Failed to get task")
-	}
+	t.update_submission(stub, []string{args[0], args[1]})
+	// tasksAsBytes, err := stub.GetState(args[0])
+	// if err != nil {
+	// 	return nil, errors.New("Failed to get task")
+	// }
 
-	res := Task{}
-	json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
-	res.Submissions = args[1]
+	// res := Task{}
+	// json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
+	// res.Submissions = args[1]
 
-	fmt.Println("! appended submission to task")
-	fmt.Println(res.Submissions)
-	fmt.Println(res)
+	// fmt.Println("! appended submission to task")
+	// fmt.Println(res.Submissions)
+	// fmt.Println(res)
 
-	jsonAsBytes, _ := json.Marshal(res)
-	err = stub.PutState(args[0], jsonAsBytes) //rewrite the task with id as key
-	if err != nil {
-		return nil, err
-	}
+	// jsonAsBytes, _ := json.Marshal(res)
+	// err = stub.PutState(args[0], jsonAsBytes) //rewrite the task with id as key
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	/////////// end tasks //////////
 
