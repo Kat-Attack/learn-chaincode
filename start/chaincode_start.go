@@ -113,10 +113,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.write(stub, args)
 	} else if function == "add_task" {
 		return t.add_task(stub, args)
+	} else if function == "update_task" {
+		return t.update_task(stub, args)
 	}
-	//else if function == "createProduct" {
-	// 	return t.CreateProduct(stub, args)
-	// } else if function == "purchaseProduct" { 						// for rewards (includes turing 100 savings into 100 spendings)
+	// else if function == "purchaseProduct" { 						// for rewards (includes turing 100 savings into 100 spendings)
 	// 	return t.PurchaseProduct(stub, args)
 	// } else if function == "addAllowance" {							// transactions from admin panel
 	// 	return t.AddAllowance(stub, args)
