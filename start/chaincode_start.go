@@ -297,62 +297,72 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 
 	////////// tasks ///////////////
 
-	tasksAsBytes, err := stub.GetState(taskIndexStr)
+	tasksAsBytes, err := stub.GetState(args[0])
 	if err != nil {
-		return nil, errors.New("Failed to get tasks index")
+		return nil, errors.New("Failed to get task")
 	}
-	var taskIndex []string
-	json.Unmarshal(tasksAsBytes, &taskIndex) //un stringify it aka JSON.parse()
 
-	fmt.Print("Task index: ")
-	fmt.Println(taskIndex)
+	res := Task{}
+	json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
+	res.Submissions = args[1]
+
+	fmt.Println("! appended submission to task")
+	fmt.Println(res.Submissions)
+	fmt.Println(res)
+
+	jsonAsBytes, _ := json.Marshal(res)
+	err = stub.PutState(args[0], jsonAsBytes) //rewrite the task with id as key
+	if err != nil {
+		return nil, err
+	}
+
 	/////////// end tasks //////////
 
-	for i := range mplace.Tasks { //iter through all the tasks
-		fmt.Print("looking @ task name: ")
-		fmt.Println(mplace.Tasks[i])
+	// for i := range mplace.Tasks { //iter through all the tasks
+	// 	fmt.Print("looking @ task name: ")
+	// 	fmt.Println(mplace.Tasks[i])
 
-		taskAsBytes, err := json.Marshal(mplace.Tasks[i])
-		if err != nil {
-			fmt.Println("error:", err)
-		}
+	// 	taskAsBytes, err := json.Marshal(mplace.Tasks[i])
+	// 	if err != nil {
+	// 		fmt.Println("error:", err)
+	// 	}
 
-		var taskStr []string
-		json.Unmarshal(taskAsBytes, &taskStr) //un stringify it aka JSON.parse()
+	// 	var taskStr []string
+	// 	json.Unmarshal(taskAsBytes, &taskStr) //un stringify it aka JSON.parse()
 
-		fmt.Println(taskStr)
-		fmt.Println(taskStr[1])
+	// 	fmt.Println(taskStr)
+	// 	fmt.Println(taskStr[1])
 
-		// taskAsBytes, err := stub.GetState(taskStr[1]) //grab this marble
-		// if err != nil {
-		// 	return nil, errors.New("Failed to get task")
-		// }
-		// res := Task{}
-		// json.Unmarshal(taskAsBytes, &res) //un stringify it aka JSON.parse()
+	// taskAsBytes, err := stub.GetState(taskStr[1]) //grab this marble
+	// if err != nil {
+	// 	return nil, errors.New("Failed to get task")
+	// }
+	// res := Task{}
+	// json.Unmarshal(taskAsBytes, &res) //un stringify it aka JSON.parse()
 
-		// fmt.Print("This is the marble: ")
-		// fmt.Println(res.Uid + ", " + res.User + ", " + res.Amount)
+	// fmt.Print("This is the marble: ")
+	// fmt.Println(res.Uid + ", " + res.User + ", " + res.Amount)
 
-		// if mplace.Tasks[i][0] == args[0] { // found task
+	// if mplace.Tasks[i][0] == args[0] { // found task
 
-		// }
+	// }
 
-		// marbleAsBytes, err := stub.GetState(mplace[i]) //grab this task
-		// if err != nil {
-		// 	return fail, errors.New("Failed to get task")
-		// }
-		// res := Task{}
-		// json.Unmarshal(marbleAsBytes, &res) //un stringify it aka JSON.parse()
-		// fmt.Println("looking @ : " + res.Uid + "," + res.User + ", " + strconv.Itoa(res.Amount)) + "," + res.Title + ", " + res.Description + "," + res.Submissions);
+	// marbleAsBytes, err := stub.GetState(mplace[i]) //grab this task
+	// if err != nil {
+	// 	return fail, errors.New("Failed to get task")
+	// }
+	// res := Task{}
+	// json.Unmarshal(marbleAsBytes, &res) //un stringify it aka JSON.parse()
+	// fmt.Println("looking @ : " + res.Uid + "," + res.User + ", " + strconv.Itoa(res.Amount)) + "," + res.Title + ", " + res.Description + "," + res.Submissions);
 
-		// //check for user && color && size
-		// if (res.Uid) == args[0] {
-		// 	fmt.Println("found the task: " + res.Uid)
-		// 	res.
-		// 	fmt.Println("! end find marble 4 trade")
-		// 	return res, nil
-		// }
-	}
+	// //check for user && color && size
+	// if (res.Uid) == args[0] {
+	// 	fmt.Println("found the task: " + res.Uid)
+	// 	res.
+	// 	fmt.Println("! end find marble 4 trade")
+	// 	return res, nil
+	// }
+	// }
 
 	fmt.Println("- end update task")
 	return nil, nil
