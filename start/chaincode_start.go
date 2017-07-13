@@ -344,72 +344,21 @@ func (t *SimpleChaincode) update_task(stub shim.ChaincodeStubInterface, args []s
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to update")
 
-			// taskAsBytes, err := stub.GetState(args[0])
-			// if err != nil {
-			// 	return nil, errors.New("Failed to get task for mplace")
-			// }
-
-			// task := Task{}
-			// json.Unmarshal(taskAsBytes, &task) //un stringify it aka JSON.parse()
-
 			t.update_submission(stub, []string{args[0], args[1]})
-			fmt.Println(mplace.Tasks[i].Submissions)
-			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
 
+			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
 			fmt.Println("! appended submission to task in marketplace")
 			fmt.Println(mplace.Tasks[i].Submissions)
 			fmt.Println(mplace.Tasks[i])
 
 			jsonAsBytes, _ := json.Marshal(mplace)
-			err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the task with id as key
+			err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the marketplace with new submission
 			if err != nil {
 				return nil, err
 			}
+			break
 		}
 	}
-
-	// taskAsBytes, err := json.Marshal(mplace.Tasks[i])
-	// if err != nil {
-	// 	fmt.Println("error:", err)
-	// }
-
-	// var taskStr []string
-	// json.Unmarshal(taskAsBytes, &taskStr) //un stringify it aka JSON.parse()
-
-	// fmt.Println(taskStr)
-	// fmt.Println(taskStr[1])
-
-	// taskAsBytes, err := stub.GetState(taskStr[1]) //grab this marble
-	// if err != nil {
-	// 	return nil, errors.New("Failed to get task")
-	// }
-	// res := Task{}
-	// json.Unmarshal(taskAsBytes, &res) //un stringify it aka JSON.parse()
-
-	// fmt.Print("This is the marble: ")
-	// fmt.Println(res.Uid + ", " + res.User + ", " + res.Amount)
-
-	// if mplace.Tasks[i][0] == args[0] { // found task
-
-	// }
-
-	// // marbleAsBytes, err := stub.GetState(mplace[i]) //grab this task
-	// // if err != nil {
-	// // 	return fail, errors.New("Failed to get task")
-	// // }
-	// // res := Task{}
-	// // json.Unmarshal(marbleAsBytes, &res) //un stringify it aka JSON.parse()
-	// // fmt.Println("looking @ : " + res.Uid + "," + res.User + ", " + strconv.Itoa(res.Amount)) + "," + res.Title + ", " + res.Description + "," + res.Submissions);
-
-	// // //check for user && color && size
-	// // if (res.Uid) == args[0] {
-	// // 	fmt.Println("found the task: " + res.Uid)
-	// // 	res.
-	// // 	fmt.Println("! end find marble 4 trade")
-	// // 	return res, nil
-	// // }
-	// // }
-
 	fmt.Println("- end update task")
 	return nil, nil
 
