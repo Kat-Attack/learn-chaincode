@@ -259,7 +259,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	}
 	//////////////////////////////////////////////////////////////
 
-	fmt.Println("- end open trade")
+	fmt.Println("- end add task")
 	return nil, nil
 
 }
@@ -447,7 +447,10 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 			t.single_task_delete_submission(stub, []string{args[0], args[1]})
 
 			for i, v := range mplace.Tasks[i].Submissions { // delete submission from marketplace array
+				fmt.Print(i)
+				fmt.Println(v)
 				if v == args[1] {
+					fmt.Println("found v")
 					mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions[:i], mplace.Tasks[i].Submissions[i+1:]...)
 					break
 				}
