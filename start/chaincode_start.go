@@ -227,8 +227,11 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	task.Amount = amount
 	task.Title = args[3]
 	task.Description = args[4]
-	task.Submissions = []string{args[5]}
-	task.CompletedBy = args[6]
+	if args[5] != "" && args[6] != "" {
+		fmt.Println("submission and completed by not empty...")
+		task.Submissions = []string{args[5]}
+		task.CompletedBy = args[6]
+	}
 
 	fmt.Println("below is task: ")
 	fmt.Println(task)
@@ -286,7 +289,8 @@ func (t *SimpleChaincode) single_task_add_submission(stub shim.ChaincodeStubInte
 	}
 
 	res := Task{}
-	json.Unmarshal(tasksAsBytes, &res)                 //un stringify it aka JSON.parse()
+	json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
+
 	res.Submissions = append(res.Submissions, args[1]) // append submission
 
 	fmt.Println("! appended submission to task")
@@ -329,6 +333,9 @@ func (t *SimpleChaincode) single_task_delete_submission(stub shim.ChaincodeStubI
 	json.Unmarshal(tasksAsBytes, &res) //un stringify it aka JSON.parse()
 
 	for i, v := range res.Submissions { // remove submission from task
+		fmt.Print(i)
+		fmt.Println(v)
+		fmt.Println("found v")
 		if v == args[1] {
 			res.Submissions = append(res.Submissions[:i], res.Submissions[i+1:]...)
 			break
