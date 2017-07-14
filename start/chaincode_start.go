@@ -49,7 +49,7 @@ type Task struct {
 }
 
 type Marketplace struct {
-	Tasks []Task `json:"marketplace_tasks"`
+	Tasks []Task `json:"tasks"`
 }
 
 type CompletedTasks struct { // all tasks here shoud have Completed by not null
@@ -257,7 +257,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	}
 	//////////////////////////////////////////////////////
 
-	//get the open trade struct
+	//get the marketplace struct
 	MarketplaceAsBytes, err := stub.GetState(MarketplaceStr)
 	if err != nil {
 		return nil, errors.New("Failed to get marketplace")
@@ -542,7 +542,7 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
 
-	fmt.Println("- start remove trade")
+	fmt.Println("- start finished tasks")
 
 	// get all active tasks in marketplace
 	MarketplaceAsBytes, err := stub.GetState(MarketplaceStr)
@@ -580,8 +580,26 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 			break
 		}
 	}
-	fmt.Println(completedTask)
-	// move from marketplace to completedtasks
+
+	//get the Completed Tasks struct
+	CompletedTasksAsBytes, err := stub.GetState(CompletedTasksStr)
+	if err != nil {
+		return nil, errors.New("Failed to get marketplace")
+	}
+	var cTasks CompletedTasks
+	json.Unmarshal(CompletedTasksAsBytes, &cTasks) //un stringify it aka JSON.parse()
+
+	//// append task into marketplace ///////////////////////////
+	cTasks.Tasks = append(cTasks.Tasks, completedTask)
+	fmt.Println("! appended task to CompletedTasks")
+	jsonAsBytes, _ := json.Marshal(cTasks)
+	err = stub.PutState(CompletedTasksStr, jsonAsBytes) //rewrite marketplace
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(cTasks)
+
+	fmt.Println("- end finished tasks")
 
 	return nil, nil
 }
