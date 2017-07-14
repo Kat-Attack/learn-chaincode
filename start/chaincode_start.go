@@ -204,6 +204,8 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 
+	fmt.Println("- create and add task")
+
 	fmt.Println("Number of args: ")
 	fmt.Println(len(args))
 	fmt.Println(args[0])
@@ -221,8 +223,6 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 		return nil, errors.New("Incorrect number of arguments. Expecting 9 or 10")
 	}
 
-	fmt.Println("- create and add task")
-
 	amount, err := strconv.Atoi(args[2])
 	if err != nil {
 		return nil, errors.New("3rd argument (amount) must be a numeric string")
@@ -238,7 +238,8 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	task.EndDate = args[6]
 	task.Skills = args[7]
 	task.Location = args[8]
-	if len(args) > 10 {
+	if len(args) > 9 {
+		fmt.Println(args[9])
 		fmt.Println("address not empty, add to task")
 		task.Address = args[9]
 	}
