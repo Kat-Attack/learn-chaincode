@@ -300,13 +300,13 @@ func (t *SimpleChaincode) modify_task(stub shim.ChaincodeStubInterface, args []s
 	var err error
 
 	//   0          1           2
-	// "command", "uid",  "bob@email.com"
-	if len(args) < 3 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 3")
+	// "command", "uid",  "bob@email.com" (email is optional)
+	if len(args) < 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2 or 3")
 	}
 
 	fmt.Println("- start helper modify_task")
-	fmt.Println(args[0] + " - " + args[1] + " - " + args[2])
+	// fmt.Println(args[0] + " - " + args[1] + " - " + args[2])
 
 	// get task from blockchain
 	tasksAsBytes, err := stub.GetState(args[1])
@@ -334,8 +334,13 @@ func (t *SimpleChaincode) modify_task(stub shim.ChaincodeStubInterface, args []s
 		fmt.Println(res.Submissions)
 		fmt.Println(res)
 	} else if args[0] == "add_completedBy" {
-		res.CompletedBy = args[2]
-		fmt.Println("! marked task as complete")
+		if len(args) == 3 {
+			res.CompletedBy = args[2]
+			fmt.Println("! marked task as complete by user")
+		} else {
+			res.CompletedBy = "CLOSED"
+			fmt.Println("! marked task as CLOSED")
+		}
 		fmt.Println(res.CompletedBy)
 		fmt.Println(res)
 	} else {
@@ -500,6 +505,8 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 
 	if len(args) == 2 { // if task is finished by a user
 		t.modify_task(stub, []string{"add_completedBy", args[0], args[1]})
+	} else {
+		t.modify_task(stub, []string{"add_completedBy", args[0]})
 	}
 
 	var completedTask = Task{}
