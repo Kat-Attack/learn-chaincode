@@ -335,8 +335,8 @@ func (t *SimpleChaincode) single_task_delete_submission(stub shim.ChaincodeStubI
 	for i, v := range res.Submissions { // remove submission from task
 		fmt.Print(i)
 		fmt.Println(v)
-		fmt.Println("found v")
 		if v == args[1] {
+			fmt.Println("found v")
 			res.Submissions = append(res.Submissions[:i], res.Submissions[i+1:]...)
 			break
 		}
@@ -458,6 +458,8 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 				fmt.Println(v)
 				if v == args[1] {
 					fmt.Println("found v")
+					fmt.Println(mplace.Tasks[i].Submissions[:i])
+					fmt.Println(mplace.Tasks[i].Submissions[i+1:])
 					mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions[:i], mplace.Tasks[i].Submissions[i+1:]...)
 					break
 				}
