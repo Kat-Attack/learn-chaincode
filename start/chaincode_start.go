@@ -566,21 +566,17 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to delete in marketplace array")
 
+			mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy
 			completedTask = mplace.Tasks[i]
 			fmt.Println(completedTask)
 			mplace.Tasks = append(mplace.Tasks[:i], mplace.Tasks[i+1:]...) // remove task from marketplace
-			break
+			fmt.Println(mplace)
 
-			// mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy in marketplace array
-			// fmt.Println("! marked task as completedBy user in marketplace")
-			// fmt.Println(mplace.Tasks[i].CompletedBy)
-			// fmt.Println(mplace.Tasks[i])
-
-			// jsonAsBytes, _ := json.Marshal(mplace)
-			// err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the marketplace with new submission
-			// if err != nil {
-			// 	return nil, err
-			// }
+			jsonAsBytes, _ := json.Marshal(mplace)
+			err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the marketplace with new submission
+			if err != nil {
+				return nil, err
+			}
 			break
 		}
 	}
