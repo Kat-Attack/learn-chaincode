@@ -577,9 +577,6 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 		}
 	}
 
-	fmt.Print("completedTask: ")
-	fmt.Println(completedTask)
-
 	//get the Completed Tasks struct
 	CompletedTasksAsBytes, err := stub.GetState(CompletedTasksStr)
 	if err != nil {
@@ -587,9 +584,6 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 	}
 	var cTasks CompletedTasks
 	json.Unmarshal(CompletedTasksAsBytes, &cTasks) //un stringify it aka JSON.parse()
-
-	fmt.Print("ctasks before add: ")
-	fmt.Println(cTasks)
 
 	//// append task into marketplace ///////////////////////////
 	cTasks.Tasks = append(cTasks.Tasks, completedTask)
@@ -599,7 +593,10 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 	if err != nil {
 		return nil, err
 	}
-	fmt.Print("ctasks after add: ")
+
+	fmt.Print("new marketplace: ")
+	fmt.Println(mplace)
+	fmt.Print("new completedTasks: ")
 	fmt.Println(cTasks)
 
 	fmt.Println("- end finished tasks")
