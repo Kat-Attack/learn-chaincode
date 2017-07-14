@@ -29,9 +29,9 @@ import (
 type SimpleChaincode struct {
 }
 
-var taskIndexStr = "_taskindex"            //name for the key/value that will store a list of all known tasks
-var MarketplaceStr = "_marketplace"        // name for the key/value that will store all open tasks
-var CompletedTasksStr = "_completedTasks " // name for the key/value that will store all completed tasks
+// var taskIndexStr = "_taskindex"            //name for the key/value that will store a list of all known tasks
+var MarketplaceStr = "_marketplace"       // name for the key/value that will store all open tasks
+var CompletedTasksStr = "_completedTasks" // name for the key/value that will store all completed tasks
 
 type Task struct {
 	Uid         string   `json:"id"`
@@ -117,22 +117,21 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.Init(stub, "init", args)
 	} else if function == "write" {
 		return t.write(stub, args)
+	} else if function == "add_task" {
+		return t.add_task(stub, args)
+	} else if function == "add_submission" {
+		return t.add_submission(stub, args)
+	} else if function == "single_task_add_submission" {
+		return t.single_task_add_submission(stub, args)
+	} else if function == "delete_submission" {
+		return t.delete_submission(stub, args)
+	} else if function == "single_task_delete_submission" {
+		return t.single_task_delete_submission(stub, args)
+	} else if function == "finished_task" {
+		return t.finished_task(stub, args)
+	} else if function == "single_task_add_completedBy" {
+		return t.single_task_add_completedBy(stub, args)
 	}
-	// else if function == "add_task" {
-	// 	return t.add_task(stub, args)
-	// } else if function == "add_submission" {
-	// 	return t.add_submission(stub, args)
-	// } else if function == "single_task_add_submission" {
-	// 	return t.single_task_add_submission(stub, args)
-	// } else if function == "delete_submission" {
-	// 	return t.delete_submission(stub, args)
-	// } else if function == "single_task_delete_submission" {
-	// 	return t.single_task_delete_submission(stub, args)
-	// } else if function == "finished_task" {
-	// 	return t.finished_task(stub, args)
-	// } else if function == "single_task_add_completedBy" {
-	// 	return t.single_task_add_completedBy(stub, args)
-	// }
 
 	fmt.Println("invoke did not find func: " + function)
 
@@ -197,7 +196,6 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 	return nil, nil
 }
 
-/*
 // ============================================================================================================================
 // add_task - creates a task and adds it to Marketplace struct
 // ============================================================================================================================
@@ -608,4 +606,3 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 
 	return nil, nil
 }
-*/
