@@ -29,13 +29,12 @@ import (
 type SimpleChaincode struct {
 }
 
-// var taskIndexStr = "_taskindex"            //name for the key/value that will store a list of all known tasks
 var MarketplaceStr = "_marketplace"       // name for the key/value that will store all open tasks
-var CompletedTasksStr = "_completedTasks" // name for the key/value that will store all completed tasks
+var CompletedTasksStr = "_completedTasks" // name for the key/value that will store all completed tasks (all tasks = marketplace + completedtasks)
 
 type Task struct {
 	Uid         string   `json:"id"`
-	User        string   `json:"email"` // users are defined by their emails
+	User        string   `json:"user"` // users are defined by their emails
 	Amount      int      `json:"amount"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
@@ -54,6 +53,11 @@ type Marketplace struct {
 
 type CompletedTasks struct { // all tasks here shoud have Completed by not null
 	Tasks []Task `json:"closedTasks"`
+}
+
+// UserTasks for both own tasks and applied tasks. (ex. _kat@mail.comTasks && _kat@mail.comSubmissions)
+type UserTasks struct {
+	Tasks []Task `json:"Tasks"`
 }
 
 // ============================================================================================================================
@@ -90,7 +94,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	var cTasks CompletedTasks
-	jsonAsBytes, _ := json.Marshal(cTasks) //clearr the CompletedTasks struct
+	jsonAsBytes, _ := json.Marshal(cTasks) //clear the CompletedTasks struct
 	err = stub.PutState(CompletedTasksStr, jsonAsBytes)
 	if err != nil {
 		return nil, err
@@ -240,7 +244,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println("below is task: ")
 	fmt.Println(task)
 
-	////// store task with Uid as key for easy search /////
+	////// 1) store task with Uid as key for easy search /////
 	taskAsBytes, _ := json.Marshal(task)
 	err = stub.PutState(args[0], taskAsBytes)
 	if err != nil {
@@ -256,7 +260,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	var mplace Marketplace
 	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
-	//// append task into marketplace ///////////////////////////
+	//// 2) append task into marketplace ///////////////////////////
 	mplace.Tasks = append(mplace.Tasks, task)
 	fmt.Println("! appended task to marketplace")
 	jsonAsBytes, _ := json.Marshal(mplace)
@@ -265,6 +269,24 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 		return nil, err
 	}
 	//////////////////////////////////////////////////////////////
+
+	///// 3) store task with all of the user's tasks /////
+	usersTasksAsBytes, err := stub.GetState(args[1] + "Tasks") // get users tasks
+	if err != nil {
+		return nil, errors.New("Failed to get list of users tasks")
+	}
+	var userTask UserTasks
+	json.Unmarshal(usersTasksAsBytes, &userTask)
+
+	userTask.Tasks = append(userTask.Tasks, task) // append into user structs
+	fmt.Println("! appended task to users tasks")
+	jsAsBytes, _ := json.Marshal(userTask)
+	err = stub.PutState(args[1]+"Tasks", jsAsBytes) //rewrite marketplace
+	if err != nil {
+		return nil, err
+	}
+
+	/////////////////////////////////////////////////////
 
 	fmt.Println("- end add task")
 	return nil, nil
