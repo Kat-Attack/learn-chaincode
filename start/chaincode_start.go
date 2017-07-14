@@ -271,7 +271,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	//////////////////////////////////////////////////////////////
 
 	///// 3) store task with all of the user's tasks /////
-	usersTasksAsBytes, err := stub.GetState(args[1] + "Tasks") // get users tasks
+	usersTasksAsBytes, err := stub.GetState("_" + args[1] + "Tasks") // get users tasks
 	if err != nil {
 		return nil, errors.New("Failed to get list of users tasks")
 	}
@@ -281,7 +281,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	userTask.Tasks = append(userTask.Tasks, task) // append into user structs
 	fmt.Println("! appended task to users tasks")
 	jsAsBytes, _ := json.Marshal(userTask)
-	err = stub.PutState(args[1]+"Tasks", jsAsBytes) //rewrite marketplace
+	err = stub.PutState("_"+args[1]+"Tasks", jsAsBytes) //rewrite marketplace
 	if err != nil {
 		return nil, err
 	}
@@ -513,6 +513,8 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 
 			if len(args) == 2 { // if task is finished by a user
 				mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy
+			} else {
+				mplace.Tasks[i].CompletedBy = "CLOSED"
 			}
 
 			completedTask = mplace.Tasks[i]
