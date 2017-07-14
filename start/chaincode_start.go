@@ -282,7 +282,6 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 
 }
 
-/*
 // ============================================================================================================================
 // single_task_add_submission - update submission on task, only for single task key, not marketplace
 // ============================================================================================================================
@@ -324,6 +323,7 @@ func (t *SimpleChaincode) single_task_add_submission(stub shim.ChaincodeStubInte
 	return nil, nil
 }
 
+/*
 // ============================================================================================================================
 // single_task_delete_submission - delete submission on task, only for single task key, not marketplace
 // ============================================================================================================================
@@ -510,7 +510,8 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to add submission")
 
-			t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
+			t.single_task_add_submission(stub, []string{args[0], args[1]}) // add submission to single uid query
+			// t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
 
 			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
 			fmt.Println("! appended submission to task in marketplace")
