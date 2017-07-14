@@ -555,29 +555,37 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 	fmt.Print("Marketplace array: ")
 	fmt.Println(mplace)
 
+	t.single_task_add_completedBy(stub, []string{args[0], args[1]})
+
+	var completedTask = Task{}
 	//////// update completedBy in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
-			fmt.Println("Found trade to add completedBy")
+			fmt.Println("Found trade to delete in marketplace array")
 
-			t.single_task_add_completedBy(stub, []string{args[0], args[1]})
+			completedTask = mplace.Tasks[i]
+			fmt.Println(completedTask)
+			mplace.Tasks = append(mplace.Tasks[:i], mplace.Tasks[i+1:]...) // remove task from marketplace
+			break
 
-			mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy in marketplace array
-			fmt.Println("! marked task as completedBy user in marketplace")
-			fmt.Println(mplace.Tasks[i].CompletedBy)
-			fmt.Println(mplace.Tasks[i])
+			// mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy in marketplace array
+			// fmt.Println("! marked task as completedBy user in marketplace")
+			// fmt.Println(mplace.Tasks[i].CompletedBy)
+			// fmt.Println(mplace.Tasks[i])
 
-			jsonAsBytes, _ := json.Marshal(mplace)
-			err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the marketplace with new submission
-			if err != nil {
-				return nil, err
-			}
+			// jsonAsBytes, _ := json.Marshal(mplace)
+			// err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the marketplace with new submission
+			// if err != nil {
+			// 	return nil, err
+			// }
 			break
 		}
 	}
+	fmt.Println(completedTask)
+	// move from marketplace to completedtasks
 
 	return nil, nil
 }
