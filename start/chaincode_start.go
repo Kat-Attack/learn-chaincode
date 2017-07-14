@@ -39,8 +39,13 @@ type Task struct {
 	Amount      int      `json:"amount"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
+	StartDate   string   `json:"startDate"`
+	EndDate     string   `json:"endDate"`
+	Skills      string   `json:"skills"`
+	Location    string   `json:"location"` // either "remote" or "onsite"
+	Address     string   `json:"address"`
 	Submissions []string `json:"submissions"`
-	CompletedBy string   `json:"completed_by"` // either null or a user's email
+	CompletedBy string   `json:"completedBy"` // either null or a user's email
 }
 
 type Marketplace struct {
@@ -122,10 +127,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.delete_submission(stub, args)
 	} else if function == "single_task_delete_submission" {
 		return t.single_task_delete_submission(stub, args)
+	} else if function == "get_active_task" {
+		return t.get_active_task(stub, args)
 	}
-	// else if function == "deposit" {
-	// 	return t.Deposit(stub, args)
-	// } else if function == "set_user" {										//change owner of a marble
+	//else if function == "set_user" {										//change owner of a marble
 	// 	res, err := t.set_user(stub, args)											//lets make sure all open trades are still valid
 	// 	return res, err
 	// }
@@ -208,10 +213,12 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println(args[4])
 	fmt.Println(args[5])
 	fmt.Println(args[6])
-	//   0       1       2         3           4              5              6
-	// "uid", "user", "amount", "title", "description", "submissions", "completed_by" (completed_by + submissions expected to be null)
-	if len(args) < 5 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 5 to 7 (last two should be empty)")
+	fmt.Println(args[7])
+	fmt.Println(args[8])
+	//   0       1       2         3           4              5           6          7          8          9
+	// "uid", "user", "amount", "title", "description", "start date", "end date", "skills", "location", "address" (address is optional)
+	if len(args) < 9 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 9 or 10")
 	}
 
 	fmt.Println("- create and add task")
@@ -227,10 +234,13 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	task.Amount = amount
 	task.Title = args[3]
 	task.Description = args[4]
-	if args[5] != "" && args[6] != "" {
-		fmt.Println("submission and completed by not empty...")
-		task.Submissions = []string{args[5]}
-		task.CompletedBy = args[6]
+	task.StartDate = args[5]
+	task.EndDate = args[6]
+	task.Skills = args[7]
+	task.Location = args[8]
+	if len(args) > 10 {
+		fmt.Println("address not empty, add to task")
+		task.Address = args[9]
 	}
 
 	fmt.Println("below is task: ")
@@ -484,4 +494,11 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 	fmt.Println("- end delete submission")
 	return nil, nil
 
+}
+
+// ============================================================================================================================
+// get_active_task - return marketplace structure
+// ============================================================================================================================
+func (t *SimpleChaincode) get_active_task(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	return nil, nil
 }
