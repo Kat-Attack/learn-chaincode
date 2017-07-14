@@ -49,11 +49,11 @@ type Task struct {
 }
 
 type Marketplace struct {
-	Tasks []Task `json:"tasks"`
+	Tasks []Task `json:"openTasks"`
 }
 
 type CompletedTasks struct { // all tasks here shoud have Completed by not null
-	Tasks []Task `json:"tasks"`
+	Tasks []Task `json:"closedTasks"`
 }
 
 // ============================================================================================================================
@@ -117,24 +117,23 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.Init(stub, "init", args)
 	} else if function == "write" {
 		return t.write(stub, args)
-	} else if function == "add_task" {
-		return t.add_task(stub, args)
-	} else if function == "add_submission" {
-		return t.add_submission(stub, args)
-	} else if function == "single_task_add_submission" {
-		return t.single_task_add_submission(stub, args)
-	} else if function == "delete_submission" {
-		return t.delete_submission(stub, args)
-	} else if function == "single_task_delete_submission" {
-		return t.single_task_delete_submission(stub, args)
-	} else if function == "finished_task" {
-		return t.finished_task(stub, args)
-	} else if function == "single_task_add_completedBy" {
-		return t.single_task_add_completedBy(stub, args)
 	}
-	// 	res, err := t.set_user(stub, args)											//lets make sure all open trades are still valid
-	// 	return res, err
+	// else if function == "add_task" {
+	// 	return t.add_task(stub, args)
+	// } else if function == "add_submission" {
+	// 	return t.add_submission(stub, args)
+	// } else if function == "single_task_add_submission" {
+	// 	return t.single_task_add_submission(stub, args)
+	// } else if function == "delete_submission" {
+	// 	return t.delete_submission(stub, args)
+	// } else if function == "single_task_delete_submission" {
+	// 	return t.single_task_delete_submission(stub, args)
+	// } else if function == "finished_task" {
+	// 	return t.finished_task(stub, args)
+	// } else if function == "single_task_add_completedBy" {
+	// 	return t.single_task_add_completedBy(stub, args)
 	// }
+
 	fmt.Println("invoke did not find func: " + function)
 
 	return nil, errors.New("Received unknown function invocation: " + function)
@@ -198,10 +197,10 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 	return nil, nil
 }
 
+/*
 // ============================================================================================================================
 // add_task - creates a task and adds it to Marketplace struct
 // ============================================================================================================================
-
 func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 
@@ -412,7 +411,6 @@ func (t *SimpleChaincode) single_task_add_completedBy(stub shim.ChaincodeStubInt
 // ============================================================================================================================
 // add_submission - upload submission into task
 // ============================================================================================================================
-
 func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	fmt.Println("Number of args: ")
@@ -610,3 +608,4 @@ func (t *SimpleChaincode) finished_task(stub shim.ChaincodeStubInterface, args [
 
 	return nil, nil
 }
+*/
