@@ -397,6 +397,8 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 			// t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
 
 			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
+			fmt.Println(mplace.Tasks[i])
+			fmt.Println(*mplace.Tasks[i])
 			fmt.Println("! appended submission to task in marketplace")
 			fmt.Println(mplace.Tasks[i].Submissions)
 			fmt.Println(*mplace.Tasks[i])
