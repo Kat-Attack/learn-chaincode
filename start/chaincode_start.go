@@ -389,6 +389,7 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 	//////// update submission in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
 		fmt.Println(len(mplace.Tasks))
+		fmt.Println(i)
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
@@ -408,7 +409,8 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 				return nil, err
 			}
 			break
-		} else if i == len(mplace.Tasks) {
+		} else if i == (len(mplace.Tasks) - 1) {
+			fmt.Println("did not find task")
 			return nil, errors.New("!Task not found in add_submission")
 		}
 	}
