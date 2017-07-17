@@ -459,6 +459,8 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 					fmt.Println("found v")
 					mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions[:j], mplace.Tasks[i].Submissions[j+1:]...)
 					break
+				} else if j == (len(mplace.Tasks[i].Submissions) - 1) { // did not find submission to delete
+					return nil, errors.New("!Did not find corresponding submission in task to delete")
 				}
 			}
 
@@ -506,12 +508,6 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Print("Marketplace array: ")
 	fmt.Println(mplace)
 
-	if len(args) == 2 { // if task is finished by a user
-		t.modify_task(stub, []string{"add_completedBy", args[0], args[1]})
-	} else {
-		t.modify_task(stub, []string{"add_completedBy", args[0]})
-	}
-
 	var completedTask = Task{}
 	// var userName string
 	//////// update completedBy in task in marketplace //////
@@ -525,8 +521,10 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 			// userName = mplace.Tasks[i].User
 
 			if len(args) == 2 { // if task is finished by a user
+				t.modify_task(stub, []string{"add_completedBy", args[0], args[1]})
 				mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy
 			} else {
+				t.modify_task(stub, []string{"add_completedBy", args[0]})
 				mplace.Tasks[i].CompletedBy = "CLOSED"
 			}
 
