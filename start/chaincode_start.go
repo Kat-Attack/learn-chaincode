@@ -29,6 +29,8 @@ import (
 type SimpleChaincode struct {
 }
 
+// using pointers is pointles.. cc won't give you back original element.
+// have to physically add new element/struct instead of using pointers.
 var MarketplaceStr = "_marketplace"       // name for the key/value that will store all open tasks
 var CompletedTasksStr = "_completedTasks" // name for the key/value that will store all completed tasks (all tasks = marketplace + completedtasks)
 
@@ -225,7 +227,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 		return nil, errors.New("3rd argument (amount) must be a numeric string")
 	}
 
-	var task = Task{}
+	var task = &Task{}
 	task.Uid = args[0]
 	task.User = args[1]
 	task.Amount = amount
@@ -242,7 +244,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	}
 
 	fmt.Println("below is task: ")
-	fmt.Println(task)
+	fmt.Println(*task)
 
 	////////////////////// 1) store task with Uid as key for easy search /////
 	taskAsBytes, _ := json.Marshal(task)
@@ -261,7 +263,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
 	/////////////////////// 2) append task into marketplace ///////////////////////////
-	mplace.Tasks = append(mplace.Tasks, &task)
+	mplace.Tasks = append(mplace.Tasks, task)
 	fmt.Println("! appended task to marketplace")
 	jsonAsBytes, _ := json.Marshal(mplace)
 	err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite marketplace
@@ -394,7 +396,7 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to add submission")
 
-			// t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
+			t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
 
 			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
 			fmt.Println(mplace.Tasks[i])
