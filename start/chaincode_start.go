@@ -388,6 +388,7 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 
 	//////// update submission in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
+		fmt.Println(len(mplace.Tasks))
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
@@ -407,6 +408,8 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 				return nil, err
 			}
 			break
+		} else if i == len(mplace.Tasks) {
+			return nil, errors.New("!Task not found in add_submission")
 		}
 	}
 	fmt.Println("- end add submission")
@@ -444,6 +447,7 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 
 	//////// update submission in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
+		fmt.Println(len(mplace.Tasks))
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
@@ -470,6 +474,8 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 				return nil, err
 			}
 			break
+		} else if i == len(mplace.Tasks) {
+			return nil, errors.New("!Task not found in delete_submission")
 		}
 	}
 	fmt.Println("- end delete submission")
@@ -512,6 +518,7 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 	// var userName string
 	//////// update completedBy in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
+		fmt.Println(len(mplace.Tasks))
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
@@ -536,6 +543,8 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 				return nil, err
 			}
 			break
+		} else if i == len(mplace.Tasks) {
+			return nil, errors.New("!Task not found in end_task")
 		}
 	}
 
