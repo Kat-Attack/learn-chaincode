@@ -386,17 +386,17 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
 	fmt.Print("Marketplace array: ")
-	fmt.Println(mplace)
+	fmt.Println(mplace.Tasks)
 
 	//////// update submission in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
 		fmt.Print("looking @ task name: ")
-		fmt.Println(mplace.Tasks[i])
+		fmt.Println(*mplace.Tasks[i])
 
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to add submission")
 
-			t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
+			// t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
 
 			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
 			fmt.Println(mplace.Tasks[i])
