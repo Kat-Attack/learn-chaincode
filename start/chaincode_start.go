@@ -452,10 +452,11 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to delete submission")
 
+			if len(mplace.Tasks[i].Submissions) == 0 { // if task has no submissions
+				return nil, errors.New("!Did not find corresponding submission in task to delete")
+			}
+
 			for j, v := range mplace.Tasks[i].Submissions { // delete submission from marketplace array
-				fmt.Print("below testing: ")
-				fmt.Println(j)
-				fmt.Println(v)
 				fmt.Println(mplace.Tasks[i].Submissions)
 				if v == args[1] {
 					fmt.Println("found v")
