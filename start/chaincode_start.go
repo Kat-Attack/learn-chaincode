@@ -48,30 +48,17 @@ type Task struct {
 }
 
 type Marketplace struct {
-	Tasks []Task `json:"openTasks"`
+	Tasks []*Task `json:"openTasks"`
 }
 
 type CompletedTasks struct { // all tasks here shoud have Completed by not null
-	Tasks []Task `json:"closedTasks"`
+	Tasks []*Task `json:"closedTasks"`
 }
 
 // // UserTasks for both own tasks and applied tasks. (ex. _kat@mail.comTasks && _kat@mail.comSubmissions)
 // type UserTasks struct {
 // 	Tasks []Task `json:"Tasks"`
 // }
-
-type Account struct {
-	ID            string `json:"id"`
-	GiveBalance   int    `json:"giveBalance"`
-	PointsBalance int    `json:"pointsBalance"`
-}
-
-type Product struct {
-	ID     string   `json:"id"`
-	Name   string   `json:"name"`
-	Cost   int      `json:"cost"`
-	Owners []string `json:"owners"`
-}
 
 // ============================================================================================================================
 // Main
@@ -142,21 +129,6 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.delete_submission(stub, args)
 	} else if function == "end_task" {
 		return t.end_task(stub, args)
-	} else if function == "createAccount" { //////// this and below are all transaction cc
-		return t.CreateAccount(stub, args)
-	} else if function == "createProduct" {
-		return t.CreateProduct(stub, args)
-	} else if function == "purchaseProduct" { // for rewards (includes turing 100 savings into 100 spendings)
-		return t.PurchaseProduct(stub, args)
-	} else if function == "addAllowance" { // transactions from admin panel
-		return t.AddAllowance(stub, args)
-	} else if function == "exchange" {
-		return t.Exchange(stub, args)
-	} else if function == "deposit" {
-		return t.Deposit(stub, args)
-	} else if function == "set_user" { //change owner of a marble
-		res, err := t.set_user(stub, args) //lets make sure all open trades are still valid
-		return res, err
 	}
 
 	fmt.Println("invoke did not find func: " + function)
@@ -273,11 +245,11 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println(task)
 
 	////////////////////// 1) store task with Uid as key for easy search /////
-	taskAsBytes, _ := json.Marshal(task)      /////
-	err = stub.PutState(args[0], taskAsBytes) /////
-	if err != nil {                           /////
-		return nil, err /////
-	} /////
+	taskAsBytes, _ := json.Marshal(task)
+	err = stub.PutState(args[0], taskAsBytes)
+	if err != nil {
+		return nil, err
+	}
 	//////////////////////////////////////////////////////////////////////////
 
 	//get the marketplace struct
@@ -289,13 +261,13 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
 	/////////////////////// 2) append task into marketplace ///////////////////////////
-	mplace.Tasks = append(mplace.Tasks, task)        /////
-	fmt.Println("! appended task to marketplace")    /////
-	jsonAsBytes, _ := json.Marshal(mplace)           /////
-	err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite marketplace		  /////
-	if err != nil {                                  /////
-		return nil, err /////
-	} /////
+	mplace.Tasks = append(mplace.Tasks, &task)
+	fmt.Println("! appended task to marketplace")
+	jsonAsBytes, _ := json.Marshal(mplace)
+	err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite marketplace
+	if err != nil {
+		return nil, err
+	}
 	///////////////////////////////////////////////////////////////////////////////////
 
 	// /////////////////////// 3) store task with all of the user's tasks ////////////////   // added for testing store by user
@@ -422,12 +394,12 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to add submission")
 
-			t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
+			// t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
 
 			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
 			fmt.Println("! appended submission to task in marketplace")
 			fmt.Println(mplace.Tasks[i].Submissions)
-			fmt.Println(mplace.Tasks[i])
+			fmt.Println(*mplace.Tasks[i])
 
 			jsonAsBytes, _ := json.Marshal(mplace)
 			err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the marketplace with new submission
@@ -553,14 +525,14 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 			// userName = mplace.Tasks[i].User
 
 			if len(args) == 2 { // if task is finished by a user
-				t.modify_task(stub, []string{"add_completedBy", args[0], args[1]})
+				// t.modify_task(stub, []string{"add_completedBy", args[0], args[1]})
 				mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy
 			} else {
-				t.modify_task(stub, []string{"add_completedBy", args[0]})
+				// t.modify_task(stub, []string{"add_completedBy", args[0]})
 				mplace.Tasks[i].CompletedBy = "CLOSED"
 			}
 
-			completedTask = mplace.Tasks[i]
+			completedTask = *mplace.Tasks[i]
 			fmt.Println(completedTask)
 			mplace.Tasks = append(mplace.Tasks[:i], mplace.Tasks[i+1:]...) // remove task from marketplace
 			fmt.Println(mplace)
@@ -585,7 +557,7 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 	json.Unmarshal(CompletedTasksAsBytes, &cTasks) //un stringify it aka JSON.parse()
 
 	//// append task into marketplace ///////////////////////////
-	cTasks.Tasks = append(cTasks.Tasks, completedTask)
+	cTasks.Tasks = append(cTasks.Tasks, &completedTask)
 	fmt.Println("! appended task to CompletedTasks")
 	jsonAsBytes, _ := json.Marshal(cTasks)
 	err = stub.PutState(CompletedTasksStr, jsonAsBytes) //rewrite marketplace
@@ -630,274 +602,5 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 
 	fmt.Println("- end end task")
 
-	return nil, nil
-}
-
-// ================================ BELOW IS OLD TRANSACTION CC FNS ===================================//
-
-func (t *SimpleChaincode) CreateAccount(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	// Obtain the username to associate with the account
-	var username string
-	var err error
-	fmt.Println("running CreateAccount()")
-
-	if len(args) != 1 {
-		fmt.Println("Error obtaining username")
-		return nil, errors.New("createAccount accepts a single username argument")
-	}
-	username = args[0]
-
-	var account = Account{ID: username, GiveBalance: 500, PointsBalance: 0}
-	accountBytes, err := json.Marshal(&account)
-
-	err = stub.PutState(username, accountBytes)
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
-func (t *SimpleChaincode) CreateProduct(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	fmt.Println("running CreateProduct()")
-
-	if len(args) != 3 {
-		return nil, errors.New("CreateProduct accepts 3 argument")
-	}
-	ID := args[0]
-	name := args[1]
-	cost, err := strconv.Atoi(args[2])
-	if err != nil {
-		return nil, err
-	}
-
-	prod := Product{ID: ID, Name: name, Cost: cost, Owners: nil}
-	prodBytes, err := json.Marshal(&prod)
-
-	err = stub.PutState(ID, prodBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
-func (t *SimpleChaincode) PurchaseProduct(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	fmt.Println("running PurchaseProduct()")
-
-	if len(args) != 2 {
-		return nil, errors.New("createAccount 2 argument")
-	}
-	ProdID := args[0]
-	username := args[1]
-
-	fromAccountAsBytes, err := stub.GetState(username)
-	if err != nil {
-		return nil, errors.New("Failed to get thing")
-	}
-
-	prodAsBytes, err := stub.GetState(ProdID)
-	if err != nil {
-		return nil, errors.New("Failed to get thing")
-	}
-
-	fromRes := Account{}
-	json.Unmarshal(fromAccountAsBytes, &fromRes) //un stringify it aka JSON.parse()
-
-	prodRes := Product{}
-	json.Unmarshal(prodAsBytes, &prodRes)
-
-	if fromRes.PointsBalance < prodRes.Cost {
-		fmt.Println("- Insufficient funds")
-		return nil, errors.New("Insufficient funds")
-	}
-
-	prodRes.Owners = append(prodRes.Owners, fromRes.ID)
-	fromRes.PointsBalance -= prodRes.Cost
-
-	fromJsonAsBytes, _ := json.Marshal(fromRes)
-	err = stub.PutState(username, fromJsonAsBytes) //rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-
-	toJsonAsBytes, _ := json.Marshal(prodRes)
-	err = stub.PutState(ProdID, toJsonAsBytes) //rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("- end set PurchaseProduct")
-	return nil, nil
-}
-
-func (t *SimpleChaincode) AddAllowance(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	var toRes Account
-	//     0         1
-	// "User",     "500"
-	if len(args) < 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2")
-	}
-
-	username := args[0]
-
-	toAccountAsBytes, err := stub.GetState(username)
-	if err != nil {
-		return nil, errors.New("Failed to get thing")
-	}
-	toRes = Account{}
-	json.Unmarshal(toAccountAsBytes, &toRes)
-
-	transferAmount, err := strconv.Atoi(args[1])
-	if err != nil {
-		// handle error
-	}
-
-	toRes.GiveBalance = toRes.GiveBalance + transferAmount
-
-	toJsonAsBytes, _ := json.Marshal(toRes)
-	err = stub.PutState(username, toJsonAsBytes) //rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
-//Redeem points (Exchane)
-func (t *SimpleChaincode) Exchange(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	var toRes Account
-	//     0         1
-	// "User",     "500"
-	if len(args) < 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2")
-	}
-
-	username := args[0]
-
-	toAccountAsBytes, err := stub.GetState(username)
-	if err != nil {
-		return nil, errors.New("Failed to get thing")
-	}
-	toRes = Account{}
-	json.Unmarshal(toAccountAsBytes, &toRes)
-
-	transferAmount, err := strconv.Atoi(args[1])
-	if err != nil {
-		// handle error
-	}
-
-	if transferAmount > toRes.PointsBalance {
-		return nil, errors.New("Insufficient funds")
-	}
-
-	toRes.GiveBalance = toRes.GiveBalance + transferAmount
-	toRes.PointsBalance = toRes.PointsBalance - transferAmount
-
-	toJsonAsBytes, _ := json.Marshal(toRes)
-	err = stub.PutState(username, toJsonAsBytes) //rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
-//Redeem points (Exchane)
-func (t *SimpleChaincode) Deposit(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	var toRes Account
-	//     0         1
-	// "User",     "500"
-	if len(args) < 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2")
-	}
-
-	username := args[0]
-
-	toAccountAsBytes, err := stub.GetState(username)
-	if err != nil {
-		return nil, errors.New("Failed to get thing")
-	}
-	toRes = Account{}
-	json.Unmarshal(toAccountAsBytes, &toRes)
-
-	transferAmount, err := strconv.Atoi(args[1])
-	if err != nil {
-		// handle error
-	}
-
-	toRes.GiveBalance = toRes.GiveBalance + transferAmount
-
-	toJsonAsBytes, _ := json.Marshal(toRes)
-	err = stub.PutState(username, toJsonAsBytes) //rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
-// ============================================================================================================================
-// Set Trade - create an open trade for a marble you want with marbles you have
-// ============================================================================================================================
-func (t *SimpleChaincode) set_user(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	var toRes Account
-	//     0         1        2        3         4         5
-	// "fromUser", "500", "toUser", "reason", "hours", "comments"
-	if len(args) < 5 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 6")
-	}
-
-	fromAccountAsBytes, err := stub.GetState(args[0])
-	if err != nil {
-		return nil, errors.New("Failed to get Sender")
-	}
-	toAccountAsBytes, err := stub.GetState(args[2])
-	if err != nil {
-		return nil, errors.New("Failed to get Receiver")
-	}
-
-	fromRes := Account{}
-	json.Unmarshal(fromAccountAsBytes, &fromRes) //un stringify it aka JSON.parse()
-
-	toRes = Account{}
-	json.Unmarshal(toAccountAsBytes, &toRes)
-
-	accountBalance := fromRes.GiveBalance
-
-	transferAmount, err := strconv.Atoi(args[1])
-	if err != nil {
-		//Error because the amount entered is not a strNumber.
-		// DO not need this case if we can get a number pad so user cannot enter other characters
-		// handle error
-		return nil, err
-	}
-
-	if accountBalance < transferAmount {
-		fmt.Println("- Insufficient funds")
-		return nil, errors.New("Failed to make Transaction - Insufficient funds")
-	}
-
-	toRes.PointsBalance = toRes.PointsBalance + transferAmount
-	fromRes.GiveBalance = fromRes.GiveBalance - transferAmount
-
-	toJsonAsBytes, _ := json.Marshal(toRes)
-	err = stub.PutState(args[2], toJsonAsBytes) //rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-
-	fromJsonAsBytes, _ := json.Marshal(fromRes)
-	err = stub.PutState(args[0], fromJsonAsBytes) //rewrite the marble with id as key
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("Sucessful Transaction - end set trade")
 	return nil, nil
 }
