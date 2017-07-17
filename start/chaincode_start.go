@@ -55,10 +55,10 @@ type CompletedTasks struct { // all tasks here shoud have Completed by not null
 	Tasks []Task `json:"closedTasks"`
 }
 
-// UserTasks for both own tasks and applied tasks. (ex. _kat@mail.comTasks && _kat@mail.comSubmissions)
-type UserTasks struct {
-	Tasks []Task `json:"Tasks"`
-}
+// // UserTasks for both own tasks and applied tasks. (ex. _kat@mail.comTasks && _kat@mail.comSubmissions)
+// type UserTasks struct {
+// 	Tasks []Task `json:"Tasks"`
+// }
 
 // ============================================================================================================================
 // Main
@@ -244,13 +244,13 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println("below is task: ")
 	fmt.Println(task)
 
-	////// 1) store task with Uid as key for easy search /////
-	taskAsBytes, _ := json.Marshal(task)
-	err = stub.PutState(args[0], taskAsBytes)
-	if err != nil {
-		return nil, err
-	}
-	//////////////////////////////////////////////////////
+	////////////////////// 1) store task with Uid as key for easy search /////
+	taskAsBytes, _ := json.Marshal(task)      /////
+	err = stub.PutState(args[0], taskAsBytes) /////
+	if err != nil {                           /////
+		return nil, err /////
+	} /////
+	//////////////////////////////////////////////////////////////////////////
 
 	//get the marketplace struct
 	MarketplaceAsBytes, err := stub.GetState(MarketplaceStr)
@@ -260,33 +260,32 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	var mplace Marketplace
 	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
-	//// 2) append task into marketplace ///////////////////////////
-	mplace.Tasks = append(mplace.Tasks, task)
-	fmt.Println("! appended task to marketplace")
-	jsonAsBytes, _ := json.Marshal(mplace)
-	err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite marketplace
-	if err != nil {
-		return nil, err
-	}
-	//////////////////////////////////////////////////////////////
+	/////////////////////// 2) append task into marketplace ///////////////////////////
+	mplace.Tasks = append(mplace.Tasks, task)        /////
+	fmt.Println("! appended task to marketplace")    /////
+	jsonAsBytes, _ := json.Marshal(mplace)           /////
+	err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite marketplace		  /////
+	if err != nil {                                  /////
+		return nil, err /////
+	} /////
+	///////////////////////////////////////////////////////////////////////////////////
 
-	///// 3) store task with all of the user's tasks /////
-	usersTasksAsBytes, err := stub.GetState("_" + args[1] + "Tasks") // get users tasks
-	if err != nil {
-		return nil, errors.New("Failed to get list of users tasks")
-	}
-	var userTask UserTasks
-	json.Unmarshal(usersTasksAsBytes, &userTask)
+	// /////////////////////// 3) store task with all of the user's tasks ////////////////   // added for testing store by user
+	// usersTasksAsBytes, err := stub.GetState("_" + args[1] + "Tasks") // get users tasks
+	// if err != nil {
+	// 	return nil, errors.New("Failed to get list of users tasks")
+	// }
+	// var userTask UserTasks
+	// json.Unmarshal(usersTasksAsBytes, &userTask)
 
-	userTask.Tasks = append(userTask.Tasks, task) // append into user structs
-	fmt.Println("! appended task to users tasks")
-	jsAsBytes, _ := json.Marshal(userTask)
-	err = stub.PutState("_"+args[1]+"Tasks", jsAsBytes) //rewrite marketplace
-	if err != nil {
-		return nil, err
-	}
-
-	/////////////////////////////////////////////////////
+	// userTask.Tasks = append(userTask.Tasks, task) // append into user structs
+	// fmt.Println("! appended task to users tasks")
+	// jsAsBytes, _ := json.Marshal(userTask)
+	// err = stub.PutState("_"+args[1]+"Tasks", jsAsBytes) //rewrite marketplace
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ////////////////////////////////////////////////////////////////////////////////////
 
 	fmt.Println("- end add task")
 	return nil, nil
@@ -510,7 +509,7 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 	}
 
 	var completedTask = Task{}
-	var userName string
+	// var userName string
 	//////// update completedBy in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
 		fmt.Print("looking @ task name: ")
@@ -518,7 +517,7 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to delete in marketplace array")
-			userName = mplace.Tasks[i].User
+			// userName = mplace.Tasks[i].User
 
 			if len(args) == 2 { // if task is finished by a user
 				mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy
@@ -562,36 +561,35 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Print("new completedTasks: ")
 	fmt.Println(cTasks)
 
-	///// 3) delete task from all of the user's tasks /////
-	usersTasksAsBytes, err := stub.GetState("_" + userName + "Tasks") // get users tasks
-	if err != nil {
-		return nil, errors.New("Failed to get list of users tasks")
-	}
-	var uTasks UserTasks
-	json.Unmarshal(usersTasksAsBytes, &uTasks)
+	// ///// 3) delete task from all of the user's tasks ///// ********** did not do for add/delete submission*******
+	// usersTasksAsBytes, err := stub.GetState("_" + userName + "Tasks") // get users tasks
+	// if err != nil {
+	// 	return nil, errors.New("Failed to get list of users tasks")
+	// }
+	// var uTasks UserTasks
+	// json.Unmarshal(usersTasksAsBytes, &uTasks)
 
-	for i := range uTasks.Tasks { //iter through all the tasks
-		fmt.Print("user looking @ task name: ")
-		fmt.Println(uTasks.Tasks[i])
+	// for i := range uTasks.Tasks { //iter through all the tasks
+	// 	fmt.Print("user looking @ task name: ")
+	// 	fmt.Println(uTasks.Tasks[i])
 
-		if uTasks.Tasks[i].Uid == args[0] { // found the task to update
-			fmt.Println("Found task to update in user array")
+	// 	if uTasks.Tasks[i].Uid == args[0] { // found the task to update
+	// 		fmt.Println("Found task to update in user array")
 
-			if len(args) == 2 { // if task is finished by a user
-				uTasks.Tasks[i].CompletedBy = args[1] // add user to completedBy
-			} else {
-				uTasks.Tasks[i].CompletedBy = "CLOSED"
-			}
-		}
-	}
+	// 		if len(args) == 2 { // if task is finished by a user
+	// 			uTasks.Tasks[i].CompletedBy = args[1] // add user to completedBy
+	// 		} else {
+	// 			uTasks.Tasks[i].CompletedBy = "CLOSED"
+	// 		}
+	// 	}
+	// }
 
-	jsAsBytes, _ := json.Marshal(uTasks)
-	err = stub.PutState("_"+userName+"Tasks", jsAsBytes) //rewrite marketplace
-	if err != nil {
-		return nil, err
-	}
-
-	/////////////////////////////////////////////////////
+	// jsAsBytes, _ := json.Marshal(uTasks)
+	// err = stub.PutState("_"+userName+"Tasks", jsAsBytes) //rewrite marketplace
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// /////////////////////////////////////////////////////
 
 	fmt.Println("- end end task")
 
