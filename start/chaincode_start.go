@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -43,7 +44,7 @@ type Task struct {
 	Description string   `json:"description"`
 	StartDate   string   `json:"startDate"`
 	EndDate     string   `json:"endDate"`
-	Hours       int      `json:"hours`
+	Hours       int      `json:"hours"`
 	Skills      []string `json:"skills"`
 	Location    string   `json:"location"` // either "remote" or "onsite"
 	Address     string   `json:"address"`
@@ -201,8 +202,8 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 
 	//   0       1        2          3         4           5            6             7          8         9          10        11
 	// "uid", "user", "fullName", "amount", "title", "description", "start date", "end date", "hours", "skills", "location", "address" (address is optional)
-	if len(args) < 9 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 9 or 10")
+	if len(args) < 11 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 11 or 12")
 	}
 
 	fmt.Println("- create and add task")
@@ -241,7 +242,14 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	task.StartDate = args[6]
 	task.EndDate = args[7]
 	task.Hours = hours
-	task.Skills = append(task.Skills, args[9])
+	// task.Skills = append(task.Skills, args[9])
+	task.Skills = strings.Split(args[9], ",")
+	fmt.Println(task.Skills)
+	for i := range task.Skills {
+		fmt.Println(task.Skills[i])
+		task.Skills = append(task.Skills, strings.Trim(task.Skills[i], " "))
+		fmt.Println(task.Skills)
+	}
 	task.Location = args[10]
 	if len(args) > 11 {
 		fmt.Println(args[11])
