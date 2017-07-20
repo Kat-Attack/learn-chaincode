@@ -247,7 +247,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println(task.Skills)
 	for i := range task.Skills {
 		fmt.Println(task.Skills[i])
-		task.Skills = append(task.Skills, strings.Trim(task.Skills[i], " "))
+		task.Skills[i] = strings.Trim(task.Skills[i], " ")
 		fmt.Println(task.Skills)
 	}
 	task.Location = args[10]
