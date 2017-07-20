@@ -30,19 +30,21 @@ type SimpleChaincode struct {
 }
 
 // using pointers is pointles.. cc won't give you back original element.
-// have to physically add new element/struct instead of using pointers.
+// have to physically add new element/struct instead of using pointers. Thanks fabric. >:(
 var MarketplaceStr = "_marketplace"       // name for the key/value that will store all open tasks
 var CompletedTasksStr = "_completedTasks" // name for the key/value that will store all completed tasks (all tasks = marketplace + completedtasks)
 
 type Task struct {
 	Uid         string   `json:"id"`
 	User        string   `json:"user"` // users are defined by their emails
+	FullName    string   `json:"fullName`
 	Amount      int      `json:"amount"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	StartDate   string   `json:"startDate"`
 	EndDate     string   `json:"endDate"`
-	Skills      string   `json:"skills"`
+	Hours       int      `json:"hours`
+	Skills      []string `json:"skills"`
 	Location    string   `json:"location"` // either "remote" or "onsite"
 	Address     string   `json:"address"`
 	Submissions []string `json:"submissions"`
@@ -50,17 +52,12 @@ type Task struct {
 }
 
 type Marketplace struct {
-	Tasks []*Task `json:"openTasks"`
+	Tasks []Task `json:"openTasks"`
 }
 
 type CompletedTasks struct { // all tasks here shoud have Completed by not null
-	Tasks []*Task `json:"closedTasks"`
+	Tasks []Task `json:"closedTasks"`
 }
-
-// // UserTasks for both own tasks and applied tasks. (ex. _kat@mail.comTasks && _kat@mail.comSubmissions)
-// type UserTasks struct {
-// 	Tasks []Task `json:"Tasks"`
-// }
 
 // ============================================================================================================================
 // Main
@@ -202,8 +199,8 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 
-	//   0       1       2         3           4              5           6          7          8          9
-	// "uid", "user", "amount", "title", "description", "start date", "end date", "skills", "location", "address" (address is optional)
+	//   0       1        2          3         4           5            6             7          8         9          10        11
+	// "uid", "user", "fullName", "amount", "title", "description", "start date", "end date", "hours", "skills", "location", "address" (address is optional)
 	if len(args) < 9 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 9 or 10")
 	}
@@ -221,30 +218,39 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println(args[6])
 	fmt.Println(args[7])
 	fmt.Println(args[8])
+	fmt.Println(args[9])
+	fmt.Println(args[10])
 
-	amount, err := strconv.Atoi(args[2])
+	amount, err := strconv.Atoi(args[3])
 	if err != nil {
-		return nil, errors.New("3rd argument (amount) must be a numeric string")
+		return nil, errors.New("4th argument (amount) must be a numeric string")
 	}
 
-	var task = &Task{}
+	hours, err := strconv.Atoi(args[8])
+	if err != nil {
+		return nil, errors.New("8th argument (hours) must be a numeric string")
+	}
+
+	var task = Task{}
 	task.Uid = args[0]
 	task.User = args[1]
+	task.FullName = args[2]
 	task.Amount = amount
-	task.Title = args[3]
-	task.Description = args[4]
-	task.StartDate = args[5]
-	task.EndDate = args[6]
-	task.Skills = args[7]
-	task.Location = args[8]
-	if len(args) > 9 {
-		fmt.Println(args[9])
-		fmt.Println("address not empty, add to task")
-		task.Address = args[9]
+	task.Title = args[4]
+	task.Description = args[5]
+	task.StartDate = args[6]
+	task.EndDate = args[7]
+	task.Hours = hours
+	task.Skills = append(task.Skills, args[9])
+	task.Location = args[10]
+	if len(args) > 11 {
+		fmt.Println(args[11])
+		fmt.Println("Has address, add to task")
+		task.Address = args[11]
 	}
 
 	fmt.Println("below is task: ")
-	fmt.Println(*task)
+	fmt.Println(task)
 
 	////////////////////// 1) store task with Uid as key for easy search /////
 	taskAsBytes, _ := json.Marshal(task)
@@ -307,7 +313,6 @@ func (t *SimpleChaincode) modify_task(stub shim.ChaincodeStubInterface, args []s
 	}
 
 	fmt.Println("- start helper modify_task")
-	// fmt.Println(args[0] + " - " + args[1] + " - " + args[2])
 
 	// get task from blockchain
 	tasksAsBytes, err := stub.GetState(args[1])
@@ -386,24 +391,24 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 	json.Unmarshal(MarketplaceAsBytes, &mplace) //un stringify it aka JSON.parse()
 
 	fmt.Print("Marketplace array: ")
-	fmt.Println(mplace.Tasks)
+	fmt.Println(mplace)
 
 	//////// update submission in task in marketplace //////
 	for i := range mplace.Tasks { //iter through all the tasks
 		fmt.Print("looking @ task name: ")
-		fmt.Println(*mplace.Tasks[i])
+		fmt.Println(mplace.Tasks[i])
 
 		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
 			fmt.Println("Found trade to add submission")
 
-			// t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
+			t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
 
 			mplace.Tasks[i].Submissions = append(mplace.Tasks[i].Submissions, args[1]) // add submission to marketplace array
 			fmt.Println(mplace.Tasks[i])
-			fmt.Println(*mplace.Tasks[i])
+			fmt.Println(mplace.Tasks[i])
 			fmt.Println("! appended submission to task in marketplace")
 			fmt.Println(mplace.Tasks[i].Submissions)
-			fmt.Println(*mplace.Tasks[i])
+			fmt.Println(mplace.Tasks[i])
 
 			jsonAsBytes, _ := json.Marshal(mplace)
 			err = stub.PutState(MarketplaceStr, jsonAsBytes) //rewrite the marketplace with new submission
@@ -529,14 +534,14 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 			// userName = mplace.Tasks[i].User
 
 			if len(args) == 2 { // if task is finished by a user
-				// t.modify_task(stub, []string{"add_completedBy", args[0], args[1]})
+				t.modify_task(stub, []string{"add_completedBy", args[0], args[1]})
 				mplace.Tasks[i].CompletedBy = args[1] // add user to completedBy
 			} else {
-				// t.modify_task(stub, []string{"add_completedBy", args[0]})
+				t.modify_task(stub, []string{"add_completedBy", args[0]})
 				mplace.Tasks[i].CompletedBy = "CLOSED"
 			}
 
-			completedTask = *mplace.Tasks[i]
+			completedTask = mplace.Tasks[i]
 			fmt.Println(completedTask)
 			mplace.Tasks = append(mplace.Tasks[:i], mplace.Tasks[i+1:]...) // remove task from marketplace
 			fmt.Println(mplace)
@@ -561,7 +566,7 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 	json.Unmarshal(CompletedTasksAsBytes, &cTasks) //un stringify it aka JSON.parse()
 
 	//// append task into marketplace ///////////////////////////
-	cTasks.Tasks = append(cTasks.Tasks, &completedTask)
+	cTasks.Tasks = append(cTasks.Tasks, completedTask)
 	fmt.Println("! appended task to CompletedTasks")
 	jsonAsBytes, _ := json.Marshal(cTasks)
 	err = stub.PutState(CompletedTasksStr, jsonAsBytes) //rewrite marketplace
