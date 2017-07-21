@@ -392,6 +392,11 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 		return nil, errors.New("Incorrect number of arguments. Expecting 2: task uid and user who updated")
 	}
 
+	uid, err := strconv.Atoi(args[0])
+	if err != nil {
+		return nil, errors.New("1st argument (uid) must be a numeric string")
+	}
+
 	fmt.Println("- add submission")
 
 	// get all active tasks in marketplace
@@ -410,7 +415,7 @@ func (t *SimpleChaincode) add_submission(stub shim.ChaincodeStubInterface, args 
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
-		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
+		if mplace.Tasks[i].Uid == uid { // found the trade to update
 			fmt.Println("Found trade to add submission")
 
 			t.modify_task(stub, []string{"add_submission", args[0], args[1]}) // add submission to single uid query
@@ -452,6 +457,11 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 		return nil, errors.New("Incorrect number of arguments. Expecting 2: task uid and user who updated")
 	}
 
+	uid, err := strconv.Atoi(args[0])
+	if err != nil {
+		return nil, errors.New("1st argument (uid) must be a numeric string")
+	}
+
 	fmt.Println("- delete submission")
 
 	// get all active tasks in marketplace
@@ -470,7 +480,7 @@ func (t *SimpleChaincode) delete_submission(stub shim.ChaincodeStubInterface, ar
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
-		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
+		if mplace.Tasks[i].Uid == uid { // found the trade to update
 			fmt.Println("Found trade to delete submission")
 
 			if len(mplace.Tasks[i].Submissions) == 0 { // if task has no submissions
@@ -520,6 +530,11 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 		return nil, errors.New("Incorrect number of arguments. Expecting 1 or 2")
 	}
 
+	uid, err := strconv.Atoi(args[0])
+	if err != nil {
+		return nil, errors.New("1st argument (uid) must be a numeric string")
+	}
+
 	fmt.Println("- start end task")
 
 	// get all active tasks in marketplace
@@ -541,7 +556,7 @@ func (t *SimpleChaincode) end_task(stub shim.ChaincodeStubInterface, args []stri
 		fmt.Print("looking @ task name: ")
 		fmt.Println(mplace.Tasks[i])
 
-		if mplace.Tasks[i].Uid == args[0] { // found the trade to update
+		if mplace.Tasks[i].Uid == uid { // found the trade to update
 			fmt.Println("Found trade to delete in marketplace array")
 			// userName = mplace.Tasks[i].User
 
