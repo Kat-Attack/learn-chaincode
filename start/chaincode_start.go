@@ -36,7 +36,7 @@ var MarketplaceStr = "_marketplace"       // name for the key/value that will st
 var CompletedTasksStr = "_completedTasks" // name for the key/value that will store all completed tasks (all tasks = marketplace + completedtasks)
 
 type Task struct {
-	Uid         string   `json:"id"`
+	Uid         int      `json:"id"`
 	User        string   `json:"user"` // users are defined by their emails
 	FullName    string   `json:"fullName`
 	Amount      int      `json:"amount"`
@@ -222,6 +222,11 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	fmt.Println(args[9])
 	fmt.Println(args[10])
 
+	uid, err := strconv.Atoi(args[0])
+	if err != nil {
+		return nil, errors.New("1st argument (uid) must be a numeric string")
+	}
+
 	amount, err := strconv.Atoi(args[3])
 	if err != nil {
 		return nil, errors.New("4th argument (amount) must be a numeric string")
@@ -233,7 +238,7 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	}
 
 	var task = Task{}
-	task.Uid = args[0]
+	task.Uid = uid
 	task.User = args[1]
 	task.FullName = args[2]
 	task.Amount = amount
@@ -242,7 +247,6 @@ func (t *SimpleChaincode) add_task(stub shim.ChaincodeStubInterface, args []stri
 	task.StartDate = args[6]
 	task.EndDate = args[7]
 	task.Hours = hours
-	// task.Skills = append(task.Skills, args[9])
 	task.Skills = strings.Split(args[9], ",")
 	fmt.Println(task.Skills)
 	for i := range task.Skills {
