@@ -811,7 +811,7 @@ func (t *SimpleChaincode) redeem_bluepoints(stub shim.ChaincodeStubInterface, ar
 	}
 
 	fromRes.PointsBalance = fromRes.PointsBalance - exchangeAmount
-	toRes.GiveBalance = toRes.GiveBalance + bluepointsAmount
+	toRes.PointsBalance = toRes.PointsBalance + bluepointsAmount
 
 	toJsonAsBytes, _ := json.Marshal(toRes)
 	err = stub.PutState("BLUEPOINTSBANK@IBM.COM", toJsonAsBytes) //rewrite the marble with id as key
